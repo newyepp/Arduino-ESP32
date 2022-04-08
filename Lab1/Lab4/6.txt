@@ -1,0 +1,37 @@
+/*
+ * skill3lab3.c
+ *
+ * Created: 8/23/2021 9:39:43 AM
+ * Author : admin
+ */ 
+
+//single ended ADC, ADC free running
+#include <avr/io.h> 
+#include <util/delay.h> 
+#include "uart_printf.h"
+
+int main(void){
+	DDRB=0xFF;
+	//ADCclock = SystemClock/128
+	// =16.0/128 = 125k
+	ADCSRA|= (1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0); //AVCC with external capacitor at AREF pin.
+	//Use ADC0 with single ended input. 
+	ADMUX|=(1<<REFS0);
+	//enable ADC and ADC free running
+	ADCSRA|= (1<<ADEN)|(1<<ADATE);
+	init_usart_printf(115200);
+	ADCSRA|= (1<<ADSC); //start conversion. printf("\nbuilt on %s - %s \n",__DATE__,__TIME__);
+	while(1){
+		
+		printf("result is %d\n",ADC);
+		if(ADC>(1024/2)){
+			PORTB|=(1<<1);
+		}
+		else{
+			PORTB&=~(1<<1);
+		}
+		_delay_ms(1000);
+	}
+}
+			
+		 

@@ -1,0 +1,48 @@
+#include <avr/io.h>
+#include <util/delay.h>
+#include "uart_printf.h"
+#include <stdio.h>
+int ADC0,ADC1,Sum;
+float Vin,r,i;
+
+
+int main(void)
+{
+	
+	DDRB=0xFF;
+	ADCSRA |= (1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0); //ADC CLock 16M/128 = 125k
+	ADMUX |= (1<<REFS0); //Use ADC0 is Single ended input
+	ADCSRA |= (1<<ADEN); //enable ADC
+	
+	init_usart_printf(115200);
+
+	while (1){
+		ADCSRA |= (1<<ADSC); //Start Conversion
+		
+		while(!(ADCSRA&(1<<ADIF))){} //if no data --> loop infinity
+		//until have a data to flag showing and out loop
+		ADC0 = ADC;
+		ADCSRA |= (1<<ADIE); //End Conversion
+		ADMUX ^= (1<<MUX0);
+		
+		ADCSRA |= (1<<ADSC); //Start Conversion
+		while(!(ADCSRA&(1<<ADIF))){}
+		ADC1 = ADC;
+		ADCSRA |= (1<<ADIE); //End Conversion
+		ADMUX ^= (1<<MUX0);
+		
+		printf("ADC1 result is %d\n",ADC1);
+		printf("ADC0 result is %d\n",ADC0);
+		Sum = (ADC1-ADC0);
+		Vin = Sum*5/1.024; // VR = (ADC)*5*(1000/1024)
+		r = 271.0; // from multimeter
+		i = Vin/r;
+		
+		printf("R = %d Ohm\n",(int)r);
+		printf("I_led = %d mA\n",(int)i);
+		printf("VR = %d mV\n",(int)Vin);
+		printf("623040022-4 compiled at %s %s\n",__DATE__,__TIME__);
+		printf("------------------------------------------------------------------------\n");
+		_delay_ms(500);
+	}
+}
