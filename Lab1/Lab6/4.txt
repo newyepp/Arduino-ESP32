@@ -1,0 +1,30 @@
+#include <avr/io.h>
+#include <util/delay.h>
+int main(void){
+	DDRC=0xFF;
+	DDRD=0xFF;
+	TCCR0B=(1<<CS02); // clkI/O/256 (From prescaler)
+	TCCR0A=(1<<WGM01|1<<WGM00); // Fast PWM
+	TCCR0A|=(1<<COM0A1);
+	TCNT0=0x00;
+	TIMSK0=0x00;
+	TIFR0=(1<<OCF0A); // Timer/Counter 0 Output Compare A Match Flag
+	while(1){
+		OCR0A=100;      //39.22% duty cycle
+		// turn R
+		PORTC |= (1<<4);
+		PORTC &= ~(1<<5);
+		_delay_ms(1000);
+		//stop
+		PORTC &= ~(1<<4);
+		_delay_ms(500);
+		// turn L
+		PORTC |= (1<<5);
+		PORTC &= ~(1<<4);
+		_delay_ms(1000);
+		//stop
+		PORTC &= ~(1<<5);
+		_delay_ms(500);
+		
+	}
+}

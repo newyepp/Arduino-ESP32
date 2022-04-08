@@ -1,0 +1,66 @@
+#define F_CPU 16000000UL
+#include <avr/io.h>
+#include <stdio.h>
+#include <util/delay.h>
+#include "uart_printf.h"
+
+int16_t ref=110;
+
+
+void motor_ccw(){
+	PORTC &= ~(1<<5);
+	PORTC &= ~(1<<4);
+	PORTC |= (1<<5);
+}
+void motor_cw(){
+	
+	PORTC &= ~(1<<5);
+	PORTC &= ~(1<<4);
+	PORTC |= (1<<4);
+	
+}
+void motor_stop(){
+	PORTC &= ~(1<<5);
+	PORTC &= ~(1<<4);
+	
+	
+
+}
+int main(void){
+	
+	DDRC=0xFF;
+	DDRD=0xFF;
+	//PWM setup
+	TCCR0B=(1<<CS02); //16M/256*256=244.1 Hz (Clk/256)
+	TCCR0A=(1<<WGM01|1<<WGM00); //fast mode
+	TCCR0A|=(1<<COM0A1);
+	TCNT0=0x00;
+	TIMSK0=0x00;
+	TIFR0=(1<<OCF0A);
+	OCR0A=50;
+	//adc setup
+	ADCSRA|=(1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0); // CLK/128 = 125kHz
+	ADMUX|=(1<<REFS0); // AVCC AREF PIN WITH CAP,use ADC0
+	ADCSRA|=(1<<ADEN);//enable ADC
+	
+	init_usart_printf(115200);
+	
+	while(1){
+		//read ADC and print
+		ADCSRA|=(1<<ADSC); //Start
+		while(!(ADCSRA&(1<<ADIF))){}; // see if ADC got information
+		ADCSRA|=(1<<ADIF); // clear flag after it completed.
+		printf("ADC is %d\n",ADC);
+		
+		if(ADC<ref){
+			motor_ccw();
+			}
+		else if(ADC>ref && ADC <=200 ){
+			motor_cw();
+			}
+		else if(ADC>=201){
+			motor_stop();
+			}
+		
+	}
+}

@@ -1,0 +1,25 @@
+#include <avr/io.h>
+#include <avr/io.h>
+#include <util/delay.h>
+#include "uart_printf.h"
+
+int main(void){
+	init_usart_printf(9600);
+	ADCSRB|= (1<<ADTS2)|(1<<ADTS1)|(1<<ADTS0); //Free Running mode
+	DDRD=0xff;
+	//ADCclock = SystemClock/128 // =16.0M/128 = 125k
+	ADCSRA|= (1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0);
+	//AVCC with external capacitor at AREF pin.
+	ADMUX |= (1<<REFS0)|(0<<MUX0); //Use ADC01 is Single ended input
+	ADCSRA|= (1<<ADEN);
+	while(1){
+		//start conversion.
+		ADCSRA|= (1<<ADSC);
+		//wait for ADC.
+		while (!(ADCSRA & (1<<ADIF) )){};
+		//clear flag showing conversion complete.
+		ADCSRA|= (1<<ADIF);
+		printf("ADC result is %d\n",ADC);
+	_delay_ms(1000); 
+	}
+}
