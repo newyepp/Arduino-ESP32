@@ -1,0 +1,24 @@
+#include <avr/io.h>
+#include <stdio.h>
+#include <util/delay.h>
+int main(void){
+	DDRC=0xFF;
+	DDRD=0xFF;
+	while(1){
+		PORTD |= (1<<6);  //en 1,2
+		////turn forward
+		PORTC &= (0<<4);
+		PORTC |= (1<<5);
+		_delay_ms(1000);
+		PORTD &= (0<<6); // motor off
+		_delay_ms(500);
+		////turn back
+		PORTD |= (1<<6);  //en1,2
+		PORTC |= ~(0<<4);
+		PORTC &= ~(1<<5);
+		_delay_ms(1000);
+		PORTD &= (0<<6); // motor off
+		_delay_ms(500);
+		
+	}
+}
